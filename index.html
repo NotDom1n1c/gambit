@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GAMBIT — Play. Puzzle. Master.</title>
+<meta name="description" content="Unlimited chess in every time control, 11 variants, puzzles, lessons, engine analysis and a worldwide community. Every feature free, forever.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Instrument+Sans:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0b100c;
+  --ink-2:#0f150f;
+  --panel:#141b14;
+  --panel-2:#182018;
+  --line:rgba(237,229,207,.11);
+  --line-strong:rgba(237,229,207,.22);
+  --ivory:#ede5cf;
+  --ivory-dim:rgba(237,229,207,.62);
+  --ivory-faint:rgba(237,229,207,.38);
+  --gold:#d2a24c;
+  --gold-soft:rgba(210,162,76,.14);
+  --green:#8ab86a;
+  --green-soft:rgba(138,184,106,.13);
+  --platinum:#c9cdd6;
+  --diamond:#8ecfe0;
+  --diamond-soft:rgba(142,207,224,.12);
+  --red:#d0685a;
+  --sq-light:#e8dfc5;
+  --sq-dark:#4e6b45;
+  --radius:14px;
+  --font-display:"Fraunces",Georgia,serif;
+  --font-body:"Instrument Sans",-apple-system,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:84px}
+body{
+  background:var(--ink);
+  color:var(--ivory);
+  font-family:var(--font-body);
+  font-size:16px;
+  line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:var(--gold);color:var(--ink)}
+
+/* ---------- shared ---------- */
+.wrap{max-width:1200px;margin:0 auto;padding:0 32px}
+section{padding:110px 0;position:relative}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:12px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--gold);font-weight:600;margin-bottom:20px;
+}
+.eyebrow::before{content:"";width:26px;height:1px;background:var(--gold)}
+h2{
+  font-family:var(--font-display);
+  font-size:clamp(34px,4.6vw,54px);
+  font-weight:480;line-height:1.08;
+  letter-spacing:-.015em;margin-bottom:18px;
+}
+h2 em{font-style:italic;color:var(--gold);font-weight:420}
+.lede{color:var(--ivory-dim);font-size:17.5px;max-width:640px;margin-bottom:52px}
+.tag{
+  display:inline-block;font-size:11px;font-weight:600;
+  letter-spacing:.12em;text-transform:uppercase;
+  padding:4px 10px;border-radius:99px;border:1px solid var(--line-strong);
+  color:var(--ivory-dim);
+}
+.tag.gold{color:var(--gold);border-color:rgba(210,162,76,.45);background:var(--gold-soft)}
+.tag.green{color:var(--green);border-color:rgba(138,184,106,.45);background:var(--green-soft)}
+.tag.diamond{color:var(--diamond);border-color:rgba(142,207,224,.45);background:var(--diamond-soft)}
+.tag.platinum{color:var(--platinum);border-color:rgba(201,205,214,.4)}
+
+/* reveal on scroll */
+.rv{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+
+/* checker divider */
+.checker{
+  height:22px;
+  background:
+    repeating-conic-gradient(var(--ivory) 0% 25%, transparent 0% 50%) 0 0/22px 22px;
+  opacity:.09;
+}
+
+/* ---------- header ---------- */
+header{
+  position:fixed;inset:0 0 auto 0;z-index:100;
+  background:rgba(11,16,12,.82);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.nav{
+  max-width:1320px;margin:0 auto;padding:0 32px;
+  display:flex;align-items:center;gap:34px;height:66px;
+}
+.logo{
+  font-family:var(--font-display);font-size:22px;font-weight:600;
+  letter-spacing:.02em;color:var(--ivory);text-decoration:none;
+  display:flex;align-items:center;gap:9px;
+}
+.logo .knight{
+  width:34px;height:34px;border-radius:9px;
+  background:var(--gold);color:var(--ink);
+  display:grid;place-items:center;font-size:22px;line-height:1;
+}
+.nav-links{display:flex;gap:26px;margin-left:auto}
+.nav-links a{
+  color:var(--ivory-dim);text-decoration:none;font-size:14px;font-weight:500;
+  transition:color .2s;
+}
+.nav-links a:hover,.nav-links a.active{color:var(--ivory)}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  font-family:var(--font-body);font-weight:600;font-size:14.5px;
+  padding:11px 22px;border-radius:99px;text-decoration:none;
+  border:1px solid transparent;cursor:pointer;transition:.2s;
+}
+.btn-gold{background:var(--gold);color:var(--ink)}
+.btn-gold:hover{background:#e3b562;transform:translateY(-1px)}
+.btn-ghost{border-color:var(--line-strong);color:var(--ivory)}
+.btn-ghost:hover{border-color:var(--ivory);background:rgba(237,229,207,.05)}
+.btn-lg{padding:15px 30px;font-size:15.5px}
+
+/* ---------- hero ---------- */
+.hero{
+  padding:170px 0 90px;
+  background:
+    radial-gradient(900px 500px at 12% -6%, rgba(138,184,106,.10), transparent 62%),
+    radial-gradient(760px 520px at 92% 16%, rgba(210,162,76,.10), transparent 60%),
+    var(--ink);
+}
+.hero-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:70px;align-items:center}
+.hero h1{
+  font-family:var(--font-display);
+  font-size:clamp(44px,5.8vw,74px);
+  font-weight:460;line-height:1.02;letter-spacing:-.02em;
+  margin-bottom:26px;
+}
+.hero h1 em{font-style:italic;color:var(--gold)}
+.hero p{color:var(--ivory-dim);font-size:18px;max-width:520px;margin-bottom:36px}
+.hero-ctas{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:48px}
+.hero-stats{display:flex;gap:0;border-top:1px solid var(--line)}
+.hero-stats div{padding:18px 26px 0 0;margin-right:26px;border-right:1px solid var(--line)}
+.hero-stats div:last-child{border-right:none}
+.hero-stats b{
+  display:block;font-family:var(--font-display);font-size:27px;font-weight:560;
+  color:var(--ivory);
+}
+.hero-stats span{font-size:12.5px;color:var(--ivory-faint);letter-spacing:.06em;text-transform:uppercase}
+
+/* board */
+.board-shell{position:relative}
+.board-shell::before{
+  content:"♞";position:absolute;right:-70px;top:-110px;
+  font-size:300px;line-height:1;color:transparent;
+  -webkit-text-stroke:1px rgba(237,229,207,.09);
+  pointer-events:none;z-index:0;
+}
+.board-frame{
+  position:relative;z-index:1;
+  background:var(--panel);border:1px solid var(--line-strong);
+  border-radius:18px;padding:16px;
+  box-shadow:0 40px 90px rgba(0,0,0,.55), 0 0 0 1px rgba(0,0,0,.4);
+  transform:rotate(1.4deg);
+}
+.board{
+  display:grid;grid-template-columns:repeat(8,1fr);
+  border-radius:8px;overflow:hidden;aspect-ratio:1;
+  border:1px solid rgba(0,0,0,.5);
+}
+.sq{display:grid;place-items:center;aspect-ratio:1;font-size:clamp(22px,3.4vw,37px);line-height:1;user-select:none}
+.sq.l{background:var(--sq-light)}
+.sq.d{background:var(--sq-dark)}
+.sq .w{color:#fbf6e8;text-shadow:0 1px 0 rgba(0,0,0,.75),0 0 2px rgba(0,0,0,.5)}
+.sq .b{color:#1d2016;text-shadow:0 1px 0 rgba(255,255,255,.14)}
+.sq.mate{position:relative}
+.sq.mate::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 3px var(--gold);border-radius:2px}
+.board-caption{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:13px 6px 0;font-size:12.5px;color:var(--ivory-faint);
+}
+.board-caption b{color:var(--gold);font-weight:600;letter-spacing:.04em}
+
+/* marquee */
+.marquee{
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  overflow:hidden;padding:15px 0;background:var(--ink-2);
+}
+.marquee-track{display:flex;gap:0;width:max-content;animation:scroll 36s linear infinite}
+.marquee-track span{
+  font-family:var(--font-display);font-style:italic;font-size:15px;
+  color:var(--ivory-faint);white-space:nowrap;padding:0 22px;
+  display:flex;align-items:center;gap:44px;
+}
+.marquee-track span::after{content:"✦";font-style:normal;color:var(--gold);font-size:11px}
+@keyframes scroll{to{transform:translateX(-50%)}}
+
+/* ---------- play section ---------- */
+.play-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:22px}
+.card{
+  background:var(--panel);border:1px solid var(--line);
+  border-radius:var(--radius);padding:32px;
+  transition:border-color .25s, transform .25s;
+}
+.card:hover{border-color:var(--line-strong)}
+.card h3{
+  font-family:var(--font-display);font-size:24px;font-weight:520;
+  margin-bottom:6px;display:flex;align-items:center;gap:12px;
+}
+.card h3 .glyph{font-size:26px;color:var(--gold)}
+.card .sub{color:var(--ivory-faint);font-size:13.5px;margin-bottom:18px}
+.card p{color:var(--ivory-dim);font-size:14.5px}
+.span-7{grid-column:span 7}
+.span-5{grid-column:span 5}
+.span-6{grid-column:span 6}
+.span-4{grid-column:span 4}
+.span-12{grid-column:span 12}
+
+.tc-group{margin-bottom:16px}
+.tc-label{
+  display:flex;align-items:baseline;gap:10px;margin-bottom:8px;
+  font-size:13px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+}
+.tc-label small{color:var(--ivory-faint);font-weight:400;letter-spacing:0;text-transform:none;font-size:12.5px}
+.tc-label.bullet{color:var(--red)}
+.tc-label.blitz{color:var(--gold)}
+.tc-label.rapid{color:var(--green)}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{
+  font-variant-numeric:tabular-nums;
+  padding:7px 15px;border-radius:9px;font-size:14px;font-weight:600;
+  background:var(--ink-2);border:1px solid var(--line);color:var(--ivory);
+  cursor:pointer;transition:.18s;
+}
+.chip:hover{border-color:var(--gold);color:var(--gold);transform:translateY(-1px)}
+.notation-note{
+  margin-top:20px;padding:14px 18px;border-radius:10px;
+  background:var(--ink-2);border:1px dashed var(--line-strong);
+  font-size:13.5px;color:var(--ivory-dim);
+}
+.notation-note b{color:var(--gold)}
+
+.mode-list{list-style:none;margin-top:14px}
+.mode-list li{
+  padding:13px 0;border-top:1px solid var(--line);
+  font-size:14.5px;color:var(--ivory-dim);display:flex;gap:12px;
+}
+.mode-list li b{color:var(--ivory);font-weight:600;white-space:nowrap}
+.day-chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 6px}
+.day-chips .chip{border-radius:99px}
+
+.feature-line{
+  display:flex;gap:14px;padding:15px 0;border-top:1px solid var(--line);
+  font-size:14.5px;
+}
+.feature-line .ic{color:var(--gold);flex-shrink:0;width:20px;text-align:center}
+.feature-line div b{display:block;color:var(--ivory);font-weight:600;margin-bottom:2px}
+.feature-line div span{color:var(--ivory-dim)}
+
+/* bots strip */
+.bots-strip{
+  display:flex;gap:14px;margin-top:18px;flex-wrap:wrap;
+}
+.bot{
+  display:flex;align-items:center;gap:10px;
+  background:var(--ink-2);border:1px solid var(--line);border-radius:99px;
+  padding:7px 16px 7px 8px;font-size:13px;color:var(--ivory-dim);
+}
+.bot i{
+  font-style:normal;width:28px;height:28px;border-radius:50%;
+  display:grid;place-items:center;font-size:15px;
+  background:var(--gold-soft);color:var(--gold)
+}
+
+/* ---------- variants ---------- */
+#variants{background:var(--ink-2)}
+.var-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.var-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px 24px;transition:.25s;position:relative;overflow:hidden;
+}
+.var-card::after{
+  content:attr(data-glyph);position:absolute;right:-14px;bottom:-26px;
+  font-size:110px;line-height:1;color:transparent;
+  -webkit-text-stroke:1px rgba(237,229,207,.07);
+  transition:.3s;pointer-events:none;
+}
+.var-card:hover{border-color:var(--gold);transform:translateY(-4px)}
+.var-card:hover::after{-webkit-text-stroke-color:rgba(210,162,76,.28)}
+.var-card h4{
+  font-family:var(--font-display);font-size:19px;font-weight:560;margin-bottom:8px;
+}
+.var-card p{font-size:13.5px;color:var(--ivory-dim);line-height:1.55}
+.var-note{
+  margin-top:26px;font-size:13.5px;color:var(--ivory-faint);
+  display:flex;gap:10px;align-items:baseline;
+}
+.var-note b{color:var(--green)}
+
+/* ---------- puzzles ---------- */
+.puzzle-hero{
+  display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-bottom:22px;
+}
+.puzzle-big{
+  background:linear-gradient(150deg, var(--panel-2), var(--panel));
+  border:1px solid var(--line);border-radius:var(--radius);padding:36px;
+  position:relative;overflow:hidden;
+}
+.puzzle-big::before{
+  content:"";position:absolute;inset:auto -40px -40px auto;width:190px;height:190px;
+  background:repeating-conic-gradient(rgba(237,229,207,.06) 0% 25%, transparent 0% 50%) 0 0/34px 34px;
+  border-radius:50%;
+}
+.strikes{display:flex;gap:7px;margin:16px 0}
+.strikes span{
+  width:30px;height:30px;border-radius:8px;display:grid;place-items:center;
+  background:var(--ink-2);border:1px solid var(--line);font-size:15px;color:var(--red);
+}
+.strikes span.off{color:var(--ivory-faint);opacity:.4}
+.puz-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.limit-row{
+  display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;
+}
+
+/* ---------- learn ---------- */
+#learn{background:var(--ink-2)}
+.learn-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+
+/* ---------- analysis ---------- */
+.classif{display:flex;gap:9px;flex-wrap:wrap;margin:22px 0 8px}
+.cl{
+  display:inline-flex;align-items:center;gap:7px;
+  padding:6px 14px;border-radius:99px;font-size:13px;font-weight:600;
+  background:var(--ink-2);border:1px solid var(--line);
+}
+.cl i{font-style:normal;font-weight:700}
+.cl.brill i{color:#3fd0c9}.cl.best i{color:var(--green)}.cl.exc i{color:#a4c977}
+.cl.good i{color:#c4cf9a}.cl.book i{color:var(--ivory-faint)}
+.cl.inacc i{color:#e0c04f}.cl.mist i{color:#e09a3e}.cl.blun i{color:var(--red)}
+.evalbar{
+  display:flex;height:12px;border-radius:99px;overflow:hidden;
+  border:1px solid var(--line-strong);margin:26px 0 8px;
+}
+.evalbar div:first-child{background:#f5efdd;width:68%}
+.evalbar div:last-child{background:#20261d;width:32%}
+.evalnote{font-size:12.5px;color:var(--ivory-faint);margin-bottom:10px}
+.ana-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:22px}
+
+/* ---------- community ---------- */
+#community{background:var(--ink-2)}
+.comm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.comm{
+  background:var(--panel);border:1px solid var(--line);border-radius:12px;
+  padding:22px;transition:.2s;
+}
+.comm:hover{border-color:var(--line-strong);transform:translateY(-2px)}
+.comm .ic{font-size:21px;color:var(--gold);margin-bottom:12px;display:block}
+.comm b{display:block;font-size:15px;margin-bottom:5px}
+.comm p{font-size:13px;color:var(--ivory-dim);line-height:1.5}
+
+/* ---------- events ---------- */
+.event-feature{
+  display:grid;grid-template-columns:1.15fr .85fr;gap:22px;margin-bottom:22px;
+}
+.tt-card{
+  background:linear-gradient(140deg, #1b2214, var(--panel));
+  border:1px solid rgba(210,162,76,.35);border-radius:var(--radius);
+  padding:38px;position:relative;overflow:hidden;
+}
+.tt-card::after{
+  content:"♛";position:absolute;right:-8px;top:-34px;font-size:170px;line-height:1;
+  color:transparent;-webkit-text-stroke:1px rgba(210,162,76,.22);
+}
+.tt-card h3{font-family:var(--font-display);font-size:30px;font-weight:540;margin:10px 0 12px}
+.ev-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.fair{
+  margin-top:22px;padding:22px 28px;border-radius:var(--radius);
+  border:1px solid var(--line);background:var(--panel);
+  display:flex;gap:18px;align-items:flex-start;font-size:14px;color:var(--ivory-dim);
+}
+.fair .ic{font-size:24px;color:var(--green)}
+.fair b{color:var(--ivory)}
+
+/* ---------- pricing ---------- */
+#membership{
+  background:
+    radial-gradient(800px 440px at 50% 0%, rgba(210,162,76,.08), transparent 62%),
+    var(--ink);
+}
+.billing{
+  display:inline-flex;align-items:center;background:var(--panel);
+  border:1px solid var(--line-strong);border-radius:99px;padding:4px;gap:2px;
+  margin-bottom:48px;
+}
+.billing button{
+  border:0;background:transparent;color:var(--ivory-dim);
+  font-family:var(--font-body);font-size:14px;font-weight:600;
+  padding:9px 22px;border-radius:99px;cursor:pointer;transition:.2s;
+}
+.billing button.on{background:var(--gold);color:var(--ink)}
+.billing .save{
+  font-size:11px;color:var(--green);font-weight:700;margin-left:5px;
+}
+.tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;align-items:stretch}
+.tier{
+  background:var(--panel);border:1px solid var(--line);border-radius:16px;
+  padding:30px 26px;display:flex;flex-direction:column;position:relative;
+  transition:.25s;
+}
+.tier:hover{transform:translateY(-4px)}
+.tier .t-name{
+  font-family:var(--font-display);font-size:23px;font-weight:560;
+  display:flex;align-items:center;gap:9px;margin-bottom:4px;
+}
+.tier .t-for{font-size:12.5px;color:var(--ivory-faint);margin-bottom:20px;min-height:34px}
+.tier .price{font-family:var(--font-display);font-size:40px;font-weight:520;line-height:1}
+.tier .price small{font-size:14px;color:var(--ivory-faint);font-family:var(--font-body);font-weight:500}
+.tier .per{font-size:12px;color:var(--ivory-faint);margin:6px 0 22px;min-height:16px}
+.tier ul{list-style:none;font-size:13.5px;color:var(--ivory-dim);margin-bottom:26px;flex:1}
+.tier ul li{padding:7.5px 0 7.5px 24px;position:relative;border-top:1px solid var(--line)}
+.tier ul li::before{content:"✓";position:absolute;left:2px;color:var(--green);font-weight:700}
+.tier ul li.plus-head{
+  padding-left:0;font-weight:600;color:var(--ivory);font-size:12px;
+  letter-spacing:.1em;text-transform:uppercase;border-top:none;padding-top:14px;
+}
+.tier ul li.plus-head::before{content:none}
+.tier ul li.neg::before{content:"—";color:var(--ivory-faint)}
+.tier .btn{justify-content:center}
+.tier.gold-t{border-color:rgba(210,162,76,.4)}
+.tier.gold-t .t-name{color:var(--gold)}
+.tier.plat-t{border-color:rgba(201,205,214,.35)}
+.tier.plat-t .t-name{color:var(--platinum)}
+.tier.dia-t{
+  border-color:rgba(142,207,224,.55);
+  background:linear-gradient(165deg, rgba(142,207,224,.07), var(--panel) 45%);
+  box-shadow:0 26px 70px rgba(0,0,0,.45);
+}
+.tier.dia-t .t-name{color:var(--diamond)}
+.popular{
+  position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+  background:var(--diamond);color:var(--ink);font-size:11px;font-weight:700;
+  letter-spacing:.1em;text-transform:uppercase;padding:5px 14px;border-radius:99px;
+  white-space:nowrap;
+}
+.family{
+  margin-top:22px;border-radius:16px;border:1px solid rgba(210,162,76,.35);
+  background:linear-gradient(120deg, rgba(210,162,76,.1), var(--panel) 55%);
+  padding:34px 38px;display:grid;grid-template-columns:1.3fr auto;gap:30px;align-items:center;
+}
+.family h3{font-family:var(--font-display);font-size:27px;font-weight:540;margin-bottom:10px}
+.family p{font-size:14.5px;color:var(--ivory-dim);max-width:560px}
+.family .seats{display:flex;gap:6px;margin-top:16px}
+.family .seats span{
+  width:34px;height:34px;border-radius:50%;
+  border:1px solid rgba(210,162,76,.5);background:var(--ink-2);
+  display:grid;place-items:center;font-size:15px;color:var(--gold);
+}
+.family .fam-price{text-align:right}
+.family .fam-price b{font-family:var(--font-display);font-size:42px;font-weight:520;display:block}
+.family .fam-price span{font-size:12.5px;color:var(--ivory-faint)}
+.family .btn{margin-top:14px}
+
+/* comparison table */
+.compare{margin-top:70px;overflow-x:auto}
+.compare table{
+  width:100%;border-collapse:collapse;font-size:13.5px;min-width:760px;
+}
+.compare th,.compare td{
+  padding:13px 16px;text-align:center;border-bottom:1px solid var(--line);
+}
+.compare th{
+  font-family:var(--font-display);font-size:15px;font-weight:560;
+  border-bottom:1px solid var(--line-strong);
+}
+.compare td:first-child,.compare th:first-child{text-align:left;color:var(--ivory-dim)}
+.compare td{color:var(--ivory)}
+.compare td .y{color:var(--green);font-weight:700}
+.compare td .n{color:var(--ivory-faint)}
+.compare th.c-gold{color:var(--gold)}.compare th.c-plat{color:var(--platinum)}.compare th.c-dia{color:var(--diamond)}
+
+/* ---------- footer ---------- */
+footer{
+  border-top:1px solid var(--line);background:var(--ink-2);
+  padding:70px 0 40px;
+}
+.foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:40px;margin-bottom:54px}
+.foot-grid h5{
+  font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--ivory-faint);margin-bottom:16px;font-weight:600;
+}
+.foot-grid a{
+  display:block;color:var(--ivory-dim);text-decoration:none;font-size:14px;
+  padding:4.5px 0;transition:color .2s;
+}
+.foot-grid a:hover{color:var(--gold)}
+.foot-brand p{color:var(--ivory-faint);font-size:13.5px;max-width:280px;margin-top:14px}
+.foot-bottom{
+  border-top:1px solid var(--line);padding-top:26px;
+  display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  font-size:12.5px;color:var(--ivory-faint);
+}
+
+/* ---------- responsive ---------- */
+@media(max-width:1020px){
+  .hero-grid{grid-template-columns:1fr;gap:56px}
+  .board-shell{max-width:520px;margin:0 auto}
+  .var-grid{grid-template-columns:repeat(2,1fr)}
+  .comm-grid{grid-template-columns:repeat(2,1fr)}
+  .tiers{grid-template-columns:repeat(2,1fr)}
+  .puz-grid,.ana-grid,.ev-grid{grid-template-columns:1fr 1fr}
+  .span-7,.span-5,.span-6,.span-4{grid-column:span 12}
+  .puzzle-hero,.learn-grid,.event-feature{grid-template-columns:1fr}
+  .nav-links{display:none}
+  .foot-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:620px){
+  .wrap{padding:0 20px}
+  section{padding:76px 0}
+  .var-grid,.comm-grid,.tiers,.puz-grid,.ana-grid,.ev-grid{grid-template-columns:1fr}
+  .family{grid-template-columns:1fr}
+  .family .fam-price{text-align:left}
+  .hero-stats{flex-wrap:wrap}
+  .hero-stats div{border-right:none;padding-right:0;margin-right:0;width:50%}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <nav class="nav">
+    <a class="logo" href="#top"><span class="knight">♞</span>GAMBIT</a>
+    <div class="nav-links">
+      <a href="#play">Play</a>
+      <a href="#variants">Variants</a>
+      <a href="#puzzles">Puzzles</a>
+      <a href="#learn">Learn</a>
+      <a href="#analysis">Analysis</a>
+      <a href="#community">Community</a>
+      <a href="#events">Events</a>
+    </div>
+    <a class="btn btn-gold" href="app.html">Play now</a>
+  </nav>
+</header>
+
+<!-- ================= HERO ================= -->
+<div class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div>
+      <div class="eyebrow">The home of chess online</div>
+      <h1>Every game you'll <em>ever</em> want to play.</h1>
+      <p>Unlimited chess in every time control, eleven official variants, puzzles that fight back, engine analysis on tap and a community of millions. Every feature, free, forever — no plans, no paywalls.</p>
+      <div class="hero-ctas">
+        <a class="btn btn-gold btn-lg" href="app.html">Play now — it works</a>
+        <a class="btn btn-ghost btn-lg" href="#play">Explore the features ↓</a>
+      </div>
+      <div class="hero-stats">
+        <div><b>4</b><span>Time controls</span></div>
+        <div><b>11+</b><span>Variants</span></div>
+        <div><b>100+</b><span>Bot rivals</span></div>
+        <div><b>$0</b><span>Forever · everything</span></div>
+      </div>
+    </div>
+    <div class="board-shell">
+      <div class="board-frame">
+        <div class="board" id="board"></div>
+        <div class="board-caption">
+          <span>Morphy vs. Duke Karl &amp; Count Isouard — Paris Opera, 1858</span>
+          <b>17.Rd8#</b>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="marquee" aria-hidden="true">
+  <div class="marquee-track" id="marquee">
+    <span>Bullet</span><span>Blitz</span><span>Rapid</span><span>Daily</span>
+    <span>Chess960</span><span>Puzzle Rush</span><span>Crazyhouse</span><span>Titled Tuesday</span>
+    <span>Game Review</span><span>Bughouse</span><span>Opening Explorer</span><span>Fog of War</span>
+  </div>
+</div>
+
+<!-- ================= PLAY ================= -->
+<section id="play">
+  <div class="wrap">
+    <div class="rv">
+      <div class="eyebrow">02 — Playing chess</div>
+      <h2>Live fire or slow burn.<br><em>Your clock, your rules.</em></h2>
+      <p class="lede">Play is split into two worlds: Live Chess, where both players are online and the clock is merciless — and Daily Chess, where each move can wait until you've had coffee, dinner, and a good night's sleep.</p>
+    </div>
+
+    <div class="play-grid">
+      <div class="card span-7 rv">
+        <h3><span class="glyph">♟</span>Live Chess</h3>
+        <div class="sub">Real-time games, both players online, every rating on the line</div>
+        <div class="tc-group">
+          <div class="tc-label bullet">Bullet <small>— under 3 minutes per player</small></div>
+          <div class="chips"><button class="chip">1|0</button><button class="chip">2|1</button></div>
+        </div>
+        <div class="tc-group">
+          <div class="tc-label blitz">Blitz <small>— 3 to 10 minutes per player</small></div>
+          <div class="chips"><button class="chip">3|0</button><button class="chip">5|0</button><button class="chip">5|3</button></div>
+        </div>
+        <div class="tc-group">
+          <div class="tc-label rapid">Rapid <small>— 10 to 30+ minutes per player</small></div>
+          <div class="chips"><button class="chip">10|0</button><button class="chip">15|10</button><button class="chip">30|0</button></div>
+        </div>
+        <div class="notation-note">
+          Format is <b>base|increment</b> — “5|3” means 5 minutes on your clock plus 3 bonus seconds added after every move you play.
+        </div>
+        <ul class="mode-list">
+          <li><b>Quick Game</b>Instant matchmaking against a similarly-rated opponent. One click, one battle.</li>
+          <li><b>Custom Game</b>Challenge a specific friend or rival with your chosen time control and color.</li>
+          <li><b>New Game</b>Take on a random member from anywhere in the world.</li>
+        </ul>
+      </div>
+
+      <div class="card span-5 rv">
+        <h3><span class="glyph">☾</span>Daily Chess</h3>
+        <div class="sub">Correspondence pace — days per move, not minutes per game</div>
+        <p>Pick how many days each move may take. Think for an hour, come back tomorrow, and run as many games in parallel as you can handle.</p>
+        <div class="day-chips">
+          <button class="chip">1 day</button><button class="chip">3 days</button><button class="chip">5 days</button><button class="chip">7 days</button><button class="chip">14 days</button>
+        </div>
+        <div class="feature-line">
+          <span class="ic">⛨</span>
+          <div><b>Time-out protection</b><span>Miss a move window and your clock auto-pauses briefly. Automatic, for everyone.</span></div>
+        </div>
+        <div class="feature-line">
+          <span class="ic">✈</span>
+          <div><b>Vacation Mode</b><span>Pause the clock on <em>all</em> your Daily games at once. Earn 3 vacation days every month and store up to 30. Live games excluded.</span></div>
+        </div>
+        <div class="feature-line">
+          <span class="ic">↗</span>
+          <div><b>Separate ratings</b><span>Bullet, Blitz, Rapid, Daily and every variant carry their own Elo-style rating. Win big against stronger players, lose less against weaker ones — and follow the new rolling live leaderboard that updates continuously, with every player's monthly games one click away.</span></div>
+        </div>
+      </div>
+
+      <div class="card span-12 rv">
+        <h3><span class="glyph">♘</span>Play the Computer</h3>
+        <div class="sub">From gentle sparring partners to silicon nightmares</div>
+        <p>Face named, themed bot personalities with distinct styles and strengths — the full roster of 100+, including celebrity, streamer and sports-star bots rotating monthly, open to everyone. The dedicated <strong>Coach</strong> bot explains its reasoning as it plays and speaks in configurable coaching personalities — play it as often as you like.</p>
+        <div class="bots-strip">
+          <div class="bot"><i>♙</i>Martin — friendly beginner</div>
+          <div class="bot"><i>♗</i>Isla — positional grinder</div>
+          <div class="bot"><i>♖</i>Viktor — attacking maniac</div>
+          <div class="bot"><i>♕</i>Coach — explains every move</div>
+          <div class="bot"><i>♚</i>Maximum — no mercy given</div>
+          <div class="bot"><i>★</i>+ monthly celebrity bots</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="checker"></div>
+
+<!-- ================= VARIANTS ================= -->
+<section id="variants">
+  <div class="wrap">
+    <div class="rv">
+      <div class="eyebrow">03 — Chess variants</div>
+      <h2>When 64 squares aren't <em>strange</em> enough.</h2>
+      <p class="lede">Every variant, unlimited, for everyone. Each has its own rating, its own leaderboard, and its own way of breaking your brain.</p>
+    </div>
+    <div class="var-grid">
+      <div class="var-card rv" data-glyph="♜"><h4>Chess960</h4><p>Fischer Random: back-rank pieces shuffled into one of 960 mirrored setups — bishops on opposite colors, king between the rooks. Castling lands on the normal destination squares.</p></div>
+      <div class="var-card rv" data-glyph="♚"><h4>King of the Hill</h4><p>Normal chess — but march your king to d4, d5, e4 or e5 and you win instantly, whatever else is happening on the board.</p></div>
+      <div class="var-card rv" data-glyph="♛"><h4>Three-Check</h4><p>Deliver check three times and the game is over. Checkmate still wins too, but why wait?</p></div>
+      <div class="var-card rv" data-glyph="♞"><h4>Crazyhouse</h4><p>Captured pieces join <em>your</em> bank. Instead of moving, drop one on any empty square — even with check. Pawns can't drop on the 1st or 8th rank.</p></div>
+      <div class="var-card rv" data-glyph="♟"><h4>Bughouse</h4><p>Two boards, four players, two teams. Your captures go to your partner's hand on the other board. The match ends the instant either board does.</p></div>
+      <div class="var-card rv" data-glyph="✸"><h4>Atomic</h4><p>Every capture explodes, vaporizing the capturer and all non-pawns on the 8 surrounding squares. Kings can't capture. Blow up the enemy king to win.</p></div>
+      <div class="var-card rv" data-glyph="♙"><h4>Horde</h4><p>White: 36 pawns, nothing else. Black: a normal army. White mates the king; Black must eat every last pawn.</p></div>
+      <div class="var-card rv" data-glyph="♻"><h4>Antichess</h4><p>Captures are mandatory when available. Lose all your pieces (or get stalemated) to win. Pawns may promote to kings. No check, no castling — no mercy.</p></div>
+      <div class="var-card rv" data-glyph="♔"><h4>Racing Kings</h4><p>No pawns; everyone starts on ranks 1–2. First king to the 8th rank wins. Giving check is illegal — this is a footrace, not a fistfight.</p></div>
+      <div class="var-card rv" data-glyph="☁"><h4>Fog of War</h4><p>You only see squares your pieces could legally move to. No check or checkmate — the game ends when a king is actually captured. Good luck out there.</p></div>
+      <div class="var-card rv" data-glyph="✚"><h4>4-Player Chess</h4><p>Four armies on a cross-shaped board. Solo (only 1st wins), Free-For-All (top two win), or Teams with your diagonal partner.</p></div>
+      <div class="var-card rv" data-glyph="…"><h4>Seasonal &amp; niche</h4><p>No-Castling, Torpedo, Sideways Pawns, Capture Anything, Duck Chess, Spell Chess and more rotate in and out of events — check the Variants page for what's live.</p></div>
+    </div>
+    <div class="var-note rv"><b>Note:</b> the rated-tournament line-up changes over time; some variants are periodically added or removed from rated play.</div>
+  </div>
+</section>
+
+<div class="checker"></div>
+
+<!-- ================= PUZZLES ================= -->
+<section id="puzzles">
+  <div class="wrap">
+    <div class="rv">
+      <div class="eyebrow">04 — Puzzles</div>
+      <h2>Tactics that <em>bite back</em>.</h2>
+      <p class="lede">Positions pulled from real games, a rating that rises and falls with every answer, and two race modes where three mistakes end everything.</p>
+    </div>
+
+    <div class="puzzle-hero">
+      <div class="puzzle-big rv">
+        <span class="tag gold">Signature mode</span>
+        <h3 style="font-family:var(--font-display);font-size:30px;font-weight:540;margin:14px 0 10px">Puzzle Rush</h3>
+        <p style="color:var(--ivory-dim);font-size:15px">Five minutes on the clock (or the untimed Survival mode). Puzzles get harder as your score climbs. Three wrong answers and you're out — your score is everything you solved before the third strike.</p>
+        <div class="strikes"><span>✗</span><span>✗</span><span class="off">✗</span></div>
+        <div class="limit-row"><span class="tag green">Free · unlimited runs</span></div>
+      </div>
+      <div class="puzzle-big rv">
+        <span class="tag green">Head-to-head</span>
+        <h3 style="font-family:var(--font-display);font-size:30px;font-weight:540;margin:14px 0 10px">Puzzle Battle</h3>
+        <p style="color:var(--ivory-dim);font-size:15px">You and a matched opponent get the same puzzle sequence, live scores side by side, three minutes to out-solve each other before 3 strikes or the clock. Own rating, own leaderboard, monthly season points — win streaks multiply what you earn.</p>
+        <div class="strikes"><span class="off">✗</span><span class="off">✗</span><span class="off">✗</span></div>
+        <div class="limit-row"><span class="tag green">Free · unlimited battles</span></div>
+      </div>
+    </div>
+
+    <div class="puz-grid">
+      <div class="card rv"><h3><span class="glyph">◉</span>Rated Puzzles</h3><p>Single tactical positions from real games. Solve to raise your separate Puzzle Rating, miss and it drops. Unlimited, for everyone.</p></div>
+      <div class="card rv"><h3><span class="glyph">☀</span>Daily Puzzle</h3><p>One puzzle for the whole world, released at midnight Pacific, with its own comment section. Keep your streak alive — a 48-hour grace calendar catches you if you slip.</p></div>
+      <div class="card rv"><h3><span class="glyph">⚙</span>Custom Puzzles</h3><p>Untimed, unrated drilling. Pick your themes — forks, pins, back-rank — and difficulty range, then grind until the patterns are reflex.</p></div>
+      <div class="card rv"><h3><span class="glyph">⚔</span>Drills &amp; Endgames</h3><p>Structured sets for openings, tactics and endgames — every position unlocked from day one.</p></div>
+      <div class="card rv"><h3><span class="glyph">♟</span>Solo Chess</h3><p>A pure calculation mode: find the forced sequence of captures, no opponent required.</p></div>
+      <div class="card rv"><h3><span class="glyph">◫</span>Vision Trainer</h3><p>How fast can you find e4? Square-and-coordinate speed training to make notation second nature.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="checker"></div>
+
+<!-- ================= LEARN ================= -->
+<section id="learn">
+  <div class="wrap">
+    <div class="rv">
+      <div class="eyebrow">05 — Learning</div>
+      <h2>From “how does the horse move”<br>to <em>your own repertoire</em>.</h2>
+      <p class="lede">Interactive lessons with move-by-move feedback, master-authored courses, and a video library deep enough to get lost in.</p>
+    </div>
+    <div class="learn-grid">
+      <div class="card rv">
+        <h3><span class="glyph">✎</span>Lessons</h3>
+        <div class="sub">Interactive, guided modules — openings, strategy, tactics, endgames</div>
+        <p>Learn by playing the moves, not just watching them. From the <strong>New to Chess</strong> guide to advanced endgame technique — the entire library is open.</p>
+        <div class="limit-row"><span class="tag green">Free · unlimited lessons</span></div>
+      </div>
+      <div class="card rv">
+        <h3><span class="glyph">▤</span>Courses &amp; Opening Repertoires</h3>
+        <div class="sub">Powered by the Chessable integration</div>
+        <p>Premium opening and strategy courses authored by titled players, folded right into the platform. Build a personal <strong>Opening Repertoire</strong> by mixing sections from multiple courses into one custom study plan.</p>
+      </div>
+      <div class="card rv">
+        <h3><span class="glyph">▶</span>Video Library</h3>
+        <div class="sub">Thousands of instructional videos</div>
+        <p>Grandmaster breakdowns, opening speedruns, endgame technique — watch as much as you want.</p>
+        <div class="limit-row"><span class="tag green">Free · unlimited</span></div>
+      </div>
+      <div class="card rv">
+        <h3><span class="glyph">❦</span>The Guide</h3>
+        <div class="sub">Built-in chess encyclopedia</div>
+        <p>Rules, terms, strategy concepts and how-tos — the written reference hub for everything on the board, free for every member.</p>
+        <div class="limit-row"><span class="tag green">Free for all</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="checker"></div>
+
+<!-- ================= ANALYSIS ================= -->
+<section id="analysis">
+  <div class="wrap">
+    <div class="rv">
+      <div class="eyebrow">06 — Analysis</div>
+      <h2>Know exactly <em>where it went wrong</em>.</h2>
+      <p class="lede">Stockfish-powered Game Review classifies every move, scores your accuracy, and has the Coach explain each decision in plain language.</p>
+    </div>
+
+    <div class="card span-12 rv">
+      <h3><span class="glyph">⚖</span>Game Review</h3>
+      <div class="sub">Full engine analysis of any finished game</div>
+      <p>Every move classified, an accuracy percentage per player, and an evaluation graph across the whole game — with natural-language Coach explanations on <em>every one of your moves</em> and customizable analysis settings. Unlimited reviews for everyone.</p>
+      <div class="classif">
+        <span class="cl brill"><i>!!</i>Brilliant</span>
+        <span class="cl best"><i>★</i>Best</span>
+        <span class="cl exc"><i>!</i>Excellent</span>
+        <span class="cl good"><i>✓</i>Good</span>
+        <span class="cl book"><i>▤</i>Book</span>
+        <span class="cl inacc"><i>?!</i>Inaccuracy</span>
+        <span class="cl mist"><i>?</i>Mistake</span>
+        <span class="cl blun"><i>??</i>Blunder</span>
+      </div>
+      <div class="evalbar"><div></div><div></div></div>
+      <div class="evalnote">Evaluation: +1.8 — White is winning after 24.Nxf7</div>
+      <div class="limit-row"><span class="tag green">Free · unlimited · Coach included</span></div>
+    </div>
+
+    <div class="ana-grid">
+      <div class="card rv"><h3><span class="glyph">◈</span>Insights</h3><p>Dashboards across all your games: performance by opening, time control and time of day, time usage, accuracy trends, recurring mistake patterns.</p></div>
+      <div class="card rv"><h3><span class="glyph">⌕</span>Opening Explorer</h3><p>How has this position been played across millions of games? Win/draw/loss rates and popularity trends, by masters or the whole player pool — unlimited depth, and run it on your own games too.</p></div>
+      <div class="card rv"><h3><span class="glyph">♔</span>Master Games</h3><p>Millions of searchable games from titled players — Carlsen, Kasparov, Fischer and every star since — updated with the latest events. Free for everyone.</p></div>
+      <div class="card rv"><h3><span class="glyph">▣</span>Archive</h3><p>Every game you've ever played on the site, searchable, filterable and reviewable forever.</p></div>
+      <div class="card rv"><h3><span class="glyph">⊞</span>Analysis Board</h3><p>A free-standing board: set up any position, explore lines, flip the engine on or off. The whiteboard of your chess life.</p></div>
+      <div class="card rv"><h3><span class="glyph">✦</span>Custom settings</h3><p>Tune Game Review to taste — analysis depth and presentation, your way.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="checker"></div>
+
+<!-- ================= COMMUNITY ================= -->
+<section id="community">
+  <div class="wrap">
+    <div class="rv">
+      <div class="eyebrow">07 — Community</div>
+      <h2>Millions of players.<br><em>One clubhouse.</em></h2>
+      <p class="lede">Clubs, forums, blogs, live TV and a trophy cabinet with your name on it — the clubhouse is open to everyone.</p>
+    </div>
+    <div class="comm-grid">
+      <div class="comm rv"><span class="ic">⚑</span><b>Clubs</b><p>Player-run communities with their own forums, club tournaments and team matches. Create or join as many as you like.</p></div>
+      <div class="comm rv"><span class="ic">🗨</span><b>Forums</b><p>Public discussion boards for every topic — openings, drama, and everything between.</p></div>
+      <div class="comm rv"><span class="ic">✍</span><b>Blogs</b><p>Every member gets a built-in blogging tool. Publish your journey, your analysis, your hot takes.</p></div>
+      <div class="comm rv"><span class="ic">✉</span><b>Messages</b><p>Private inbox to reach friends and members directly.</p></div>
+      <div class="comm rv"><span class="ic">♥</span><b>Friends</b><p>Follow activity, compare stats, and fire off challenges with one click.</p></div>
+      <div class="comm rv"><span class="ic">▲</span><b>Leaderboards</b><p>Rankings per time control, variant and puzzle mode — global, by country, or just among friends.</p></div>
+      <div class="comm rv"><span class="ic">✪</span><b>Achievements</b><p>Badges for tournament wins, daily-puzzle months, mating with a specific piece, and dozens more.</p></div>
+      <div class="comm rv"><span class="ic">✿</span><b>Cheers &amp; Badges</b><p>Send small tokens of respect to friends and opponents after a game.</p></div>
+      <div class="comm rv"><span class="ic">◉</span><b>ChessTV</b><p>Live broadcasts of top events, title matches and creators, right on the site.</p></div>
+      <div class="comm rv"><span class="ic">☗</span><b>News &amp; Articles</b><p>Event coverage, strategy pieces, interviews and community updates from the editorial team.</p></div>
+      <div class="comm rv"><span class="ic">⌂</span><b>Classroom</b><p>Coaches organize students, assign lessons and puzzles, track progress. Open enrollment or invite-only — your call.</p></div>
+      <div class="comm rv"><span class="ic">❖</span><b>Themes &amp; Flair</b><p>Custom boards, pieces, backgrounds and flair icons beside your name — all of it free.</p></div>
+    </div>
+  </div>
+</section>
+
+<div class="checker"></div>
+
+<!-- ================= EVENTS ================= -->
+<section id="events">
+  <div class="wrap">
+    <div class="rv">
+      <div class="eyebrow">08 — Tournaments</div>
+      <h2>From casual arenas to <em>cash on the table</em>.</h2>
+      <p class="lede">Enter and host as many tournaments as you like — and the biggest events pay real prize money.</p>
+    </div>
+
+    <div class="event-feature">
+      <div class="tt-card rv">
+        <span class="tag gold">Weekly flagship</span>
+        <h3>Titled Tuesday</h3>
+        <p style="color:var(--ivory-dim);font-size:15px;max-width:420px">The long-running weekly Blitz battleground for titled players and qualifiers. Cash prizes every week, with results feeding into Esports World Cup qualification. Grandmasters, prodigies and chaos — every Tuesday.</p>
+      </div>
+      <div class="card rv">
+        <h3><span class="glyph">♜</span>Branded majors</h3>
+        <p>The Global/Open Championship, Speed Chess Championship, Community Championships, Freestyle Friday and more — elite invitationals and open qualifiers, broadcast live, often with serious prize pools.</p>
+      </div>
+    </div>
+
+    <div class="ev-grid">
+      <div class="card rv"><h3><span class="glyph">☾</span>Daily Tournaments</h3><p>Played out over days or weeks at Daily time controls. Enter as many as you like — and host and manage as many as you can handle.</p></div>
+      <div class="card rv"><h3><span class="glyph">⚡</span>Live Tournaments</h3><p>Rapid, Blitz and Bullet events in Arena format — score as many wins as you can inside the window — plus Swiss, Round-Robin and Knockout brackets.</p></div>
+      <div class="card rv"><h3><span class="glyph">⚑</span>Team Matches</h3><p>Club-vs-club showdowns with members paired across dozens of simultaneous boards.</p></div>
+    </div>
+
+    <div class="fair rv">
+      <span class="ic">⛨</span>
+      <div><b>Fair Play &amp; Proctor.</b> Our anti-cheating team never sleeps. Since the 2025 rollout, the dedicated Proctor fair-play browser is required for most prize-money events, and Fair Play closure statistics — including titled players — are reported openly in community updates.</div>
+    </div>
+  </div>
+</section>
+
+<div class="checker"></div>
+
+<!-- ================= FREE FOREVER ================= -->
+<section id="membership">
+  <div class="wrap">
+    <div class="rv" style="text-align:center">
+      <div class="eyebrow" style="justify-content:center">01 — The price</div>
+      <h2 style="margin-left:auto;margin-right:auto">Everything. Free. <em>Forever.</em></h2>
+      <p class="lede" style="margin-left:auto;margin-right:auto;text-align:center">No plans, no paywalls, no daily limits. Every bot, every puzzle, every drill, every analysis tool — open to everyone from move one.</p>
+      <div style="display:flex;justify-content:center;margin-bottom:34px">
+        <a class="btn btn-gold btn-lg" href="app.html">Start playing now</a>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;max-width:720px;margin:0 auto">
+        <span class="tag green">Unlimited play &amp; variants</span>
+        <span class="tag green">Unlimited puzzles, Rush &amp; Battle</span>
+        <span class="tag green">Unlimited Game Review + Coach</span>
+        <span class="tag green">All 100+ bots</span>
+        <span class="tag green">All lessons &amp; drills</span>
+        <span class="tag green">Insights included</span>
+        <span class="tag green">No ads, ever</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= FOOTER ================= -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a class="logo" href="#top"><span class="knight">♞</span>GAMBIT</a>
+        <p>The home of online chess. Play, puzzle, learn and analyze — every feature free, forever.</p>
+      </div>
+      <div>
+        <h5>Play</h5>
+        <a href="#play">Live Chess</a><a href="#play">Daily Chess</a><a href="#play">Play the Computer</a><a href="#variants">Variants</a><a href="#events">Tournaments</a>
+      </div>
+      <div>
+        <h5>Improve</h5>
+        <a href="#puzzles">Puzzles</a><a href="#learn">Lessons</a><a href="#analysis">Game Review</a><a href="#analysis">Opening Explorer</a><a href="#analysis">Insights</a>
+      </div>
+      <div>
+        <h5>Community</h5>
+        <a href="#community">Clubs</a><a href="#community">Forums</a><a href="#community">ChessTV</a><a href="#community">Classroom</a><a href="app.html">Play now</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 GAMBIT. All pieces reserved.</span>
+      <span>Fair Play protected · Proctor secured · Made for the love of the game</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ---- hero board: Opera Game final position, 17.Rd8# ---- */
+(function(){
+  const FEN = "1n1Rkb1r/p4ppp/4q3/4p1B1/4P3/8/PPP2PPP/2K5";
+  const GLYPH = {K:"♔",Q:"♕",R:"♖",B:"♗",N:"♘",P:"♙",k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"};
+  const board = document.getElementById("board");
+  const rows = FEN.split("/");
+  rows.forEach((row, r) => {
+    let f = 0;
+    for (const ch of row) {
+      if (/\d/.test(ch)) {
+        for (let i = 0; i < +ch; i++) addSq(r, f++, null);
+      } else {
+        addSq(r, f++, ch);
+      }
+    }
+  });
+  function addSq(r, f, piece) {
+    const sq = document.createElement("div");
+    sq.className = "sq " + ((r + f) % 2 === 0 ? "l" : "d");
+    if (r === 0 && f === 3) sq.classList.add("mate"); /* d8 — the mating rook */
+    if (piece) {
+      const s = document.createElement("span");
+      s.className = piece === piece.toUpperCase() ? "w" : "b";
+      s.textContent = GLYPH[piece];
+      sq.appendChild(s);
+    }
+    board.appendChild(sq);
+  }
+})();
+
+/* ---- marquee: duplicate track for seamless loop ---- */
+(function(){
+  const t = document.getElementById("marquee");
+  t.innerHTML += t.innerHTML;
+})();
+
+/* ---- scroll reveal ---- */
+(function(){
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+    });
+  }, {threshold:.12, rootMargin:"0px 0px -40px 0px"});
+  document.querySelectorAll(".rv").forEach((el, i) => {
+    el.style.transitionDelay = (i % 4) * 60 + "ms";
+    io.observe(el);
+  });
+})();
+
+/* ---- nav active state ---- */
+(function(){
+  const links = [...document.querySelectorAll(".nav-links a")];
+  const sections = links.map(a => document.querySelector(a.getAttribute("href")));
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.toggle("active", l.getAttribute("href") === "#" + e.target.id));
+      }
+    });
+  }, {rootMargin:"-40% 0px -55% 0px"});
+  sections.forEach(s => s && io.observe(s));
+})();
+</script>
+</body>
+</html>
