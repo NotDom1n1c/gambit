@@ -1212,7 +1212,7 @@ function drawChart(canvasId, points, color) {
   const cv = $(canvasId), ctx = cv.getContext("2d");
   ctx.clearRect(0, 0, cv.width, cv.height);
   if (points.length < 2) {
-    ctx.fillStyle = "rgba(237,229,207,.35)";
+    ctx.fillStyle = "rgba(22,21,15,.45)";
     ctx.font = "13px sans-serif";
     ctx.fillText("Play more games to build this chart.", 14, cv.height / 2);
     return;
@@ -1239,8 +1239,8 @@ function renderInsights() {
   gs.forEach(g => byBot[g.bot] = (byBot[g.bot] || 0) + 1);
   const fav = Object.entries(byBot).sort((a, b) => b[1] - a[1])[0];
   $("ins-fav").textContent = fav ? fav[0] : "—";
-  drawChart("ch-blitz", S.ratingHist.blitz.slice(-40), "#d2a24c");
-  drawChart("ch-puzzle", S.puzzleHist.slice(-40), "#8ecfe0");
+  drawChart("ch-blitz", S.ratingHist.blitz.slice(-40), "#3f6b35");
+  drawChart("ch-puzzle", S.puzzleHist.slice(-40), "#a8832f");
 }
 
 /* ================= SETTINGS ================= */
