@@ -9,11 +9,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,500;0,6..96,700;0,6..96,900;1,6..96,500;1,6..96,700&family=Hanken+Grotesk:wght@400;500;600;700&family=Martian+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="site.css?v=5">
+<link rel="stylesheet" href="site.css?v=6">
 <script type="importmap">
 { "imports": {
   "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/",
+  "three-mesh-bvh": "https://cdn.jsdelivr.net/npm/three-mesh-bvh@0.7.8/build/index.module.js",
+  "three-bvh-csg": "https://cdn.jsdelivr.net/npm/three-bvh-csg@0.0.16/build/index.module.js"
 } }
 </script>
 </head>
@@ -42,7 +44,7 @@
         No account, no ads, nothing to install.
       </p>
       <div class="hero-cta rise" style="--d:3">
-        <a class="btn btn-red btn-lg" href="app.html">Play now <span aria-hidden="true">→</span></a>
+        <a class="btn btn-green btn-lg" href="app.html">Play now <span aria-hidden="true">→</span></a>
         <a class="btn btn-ghost btn-lg" href="#puzzle">Solve a puzzle</a>
       </div>
     </div>
@@ -144,7 +146,7 @@
       <h3>Puzzles</h3>
       <p>Solve to raise your puzzle rating, miss and it drops. The next one adapts to how you're doing.</p>
     </article>
-    <article class="mode mode-red">
+    <article class="mode mode-hi">
       <span class="mode-kicker">5:00 · 3 strikes</span>
       <h3>Puzzle Rush</h3>
       <p>Five minutes, puzzles get harder as you climb. Three wrong answers and the run is over.</p>
@@ -263,7 +265,7 @@
   <img class="final-piece" src="pieces/cburnett/bK.svg" alt="">
   <p class="notation">1–0 is waiting</p>
   <h2>Your <em>move.</em></h2>
-  <a class="btn btn-red btn-lg" href="app.html">Open GAMBIT <span aria-hidden="true">→</span></a>
+  <a class="btn btn-green btn-lg" href="app.html">Open GAMBIT <span aria-hidden="true">→</span></a>
 </section>
 
 </main>
@@ -276,6 +278,6 @@
 
 <script src="engine.js?v=7"></script>
 <script src="site.js?v=3"></script>
-<script type="module" src="piece3d.js?v=4"></script>
+<script type="module" src="piece3d.js?v=6"></script>
 </body>
 </html>

@@ -5,6 +5,11 @@
 import * as THREE from "three";
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
+// CSG (boolean subtraction) for the bishop's slit. Optional: without it the
+// bishop is shown with a smooth head instead of a fake stuck-on slit.
+let CSG = null;
+try { CSG = await import("three-bvh-csg"); } catch (e) { CSG = null; }
+
 const canvas = document.getElementById("piece3d");
 const stage = document.getElementById("stage");
 const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -31,7 +36,7 @@ const camera = new THREE.PerspectiveCamera(28, 1, 0.1, 100);
 camera.position.set(0, 2.6, 10.5);
 camera.lookAt(0, 1.55, 0);
 
-// lights: warm key, red rim (the page's signal colour), cool fill
+// lights: warm key, brass rim, a hint of board green, cool fill
 const key = new THREE.DirectionalLight(0xfff1dc, 2.4);
 key.position.set(3.5, 6, 4);
 key.castShadow = true;
@@ -39,10 +44,10 @@ key.shadow.mapSize.set(1024, 1024);
 key.shadow.camera.left = -3; key.shadow.camera.right = 3; key.shadow.camera.top = 3; key.shadow.camera.bottom = -3;
 key.shadow.radius = 6;
 scene.add(key);
-const rim = new THREE.DirectionalLight(0xff4a30, 3.2);
+const rim = new THREE.DirectionalLight(0xe0b067, 3.0);      // brass rim
 rim.position.set(-4, 3, -4);
 scene.add(rim);
-const rim2 = new THREE.DirectionalLight(0xffb49a, 1.2);
+const rim2 = new THREE.DirectionalLight(0x9cc47f, 0.9);     // soft board-green kick
 rim2.position.set(4, 2.5, -3);
 scene.add(rim2);
 scene.add(new THREE.HemisphereLight(0x9fb4c8, 0x1a1208, 0.35));
@@ -55,7 +60,7 @@ const plinth = new THREE.Mesh(
 plinth.position.y = -0.06;
 plinth.receiveShadow = true;
 scene.add(plinth);
-const ring = new THREE.Mesh(new THREE.TorusGeometry(1.8, 0.012, 8, 128), new THREE.MeshBasicMaterial({ color: 0xd8412a }));
+const ring = new THREE.Mesh(new THREE.TorusGeometry(1.8, 0.012, 8, 128), new THREE.MeshBasicMaterial({ color: 0xc9a45c }));
 ring.rotation.x = Math.PI / 2; ring.position.y = 0.005;
 scene.add(ring);
 const shadowPlane = new THREE.Mesh(new THREE.CircleGeometry(1.7, 64), new THREE.ShadowMaterial({ opacity: 0.45 }));
@@ -114,14 +119,29 @@ const BUILD = {
   },
   B(mat) {
     const g = new THREE.Group();
-    g.add(mesh(lathe([...BASE, [0.5, 0.58], [0.36, 0.92], [0.29, 1.42], [0.46, 1.5], [0.49, 1.56], [0.46, 1.6], [0.28, 1.64],
-      [0.36, 1.76], [0.44, 1.94], [0.45, 2.08], [0.4, 2.26], [0.3, 2.42], [0.16, 2.56], [0.07, 2.62], [0, 2.63]]), mat));
+    g.add(mesh(lathe([...BASE, [0.5, 0.58], [0.36, 0.92], [0.29, 1.42], [0.46, 1.5], [0.49, 1.56], [0.46, 1.6], [0.28, 1.64], [0, 1.64]]), mat));
+    // the mitre is its own closed solid so a slit can be CUT into it
+    const head = lathe([[0, 1.6], [0.28, 1.63], [0.36, 1.76], [0.44, 1.94], [0.45, 2.08], [0.4, 2.26], [0.3, 2.42], [0.16, 2.56], [0.07, 2.62], [0, 2.63]]);
+    let headMesh = null;
+    if (CSG) {
+      try {
+        const { Brush, Evaluator, SUBTRACTION } = CSG;
+        const hb = new Brush(head, mat);
+        hb.updateMatrixWorld();
+        // a thin tilted slab that enters from one side and reaches past the centre
+        const inside = new THREE.MeshStandardMaterial({ color: mat === IVORY ? 0x3a3024 : 0x020202, roughness: 0.9 });
+        const cutter = new Brush(new THREE.BoxGeometry(0.1, 0.82, 1.4), inside);
+        cutter.position.set(0.2, 2.26, 0);
+        cutter.rotation.z = -0.78;
+        cutter.updateMatrixWorld();
+        const ev = new Evaluator();
+        ev.useGroups = true;
+        headMesh = ev.evaluate(hb, cutter, SUBTRACTION);
+        headMesh.castShadow = true; headMesh.receiveShadow = true;
+      } catch (e) { headMesh = null; }
+    }
+    g.add(headMesh || mesh(head, mat));
     g.add(sphere(0.12, 2.74, mat));
-    // the mitre's slit: a thin dark wedge set into the head
-    const slit = mesh(new THREE.BoxGeometry(0.05, 0.5, 0.95), mat === IVORY ? EBONY : IVORY);
-    slit.position.set(0.1, 2.2, 0); slit.rotation.z = -0.6; slit.scale.set(1, 1, 0.98);
-    slit.material = new THREE.MeshStandardMaterial({ color: mat === IVORY ? 0x5a5040 : 0x050505, roughness: 0.8 });
-    g.add(slit);
     return { group: g, height: 2.9 };
   },
   Q(mat) {
