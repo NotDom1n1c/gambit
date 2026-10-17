@@ -11,4 +11,4 @@ labels:
 images:
   - name: app-image
     newName: ghcr.io/notdom1n1c/gambit
-    newTag: latest
+    newTag: sha-6ef2868
